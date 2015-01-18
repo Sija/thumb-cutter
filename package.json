@@ -1,0 +1,34 @@
+{
+  "name": "thumb-cutter",
+  "version": "0.0.1",
+  "description": "On-the-fly image manipulation middleware for express.js",
+  "author": "Sijawusz Pur Rahnama <sija@sija.pl>",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sija/thumb-cutter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sija/thumb-cutter/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/Sija/thumb-cutter/raw/master/LICENSE"
+    }
+  ],
+  "keywords": [
+    "image",
+    "resize",
+    "thumb",
+    "thumbnail",
+    "imagemagick",
+    "graphicsmagick",
+    "sharp",
+    "vips"
+  ],
+  "dependencies": {
+    "mkdirp": "0.5.x",
+    "sharp" : "0.8.x"
+  }
+}
