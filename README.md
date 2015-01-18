@@ -57,7 +57,7 @@ Middleware to replace `express.static()` or `connect.static()`.
 * `rotate` Rotate the output image by either an explicit angle or auto-orient based on the EXIF Orientation tag. (default: `false`)
 * `progressive` Use progressive (interlace) scan for JPEG and PNG output. (default: `true`)
 * `withMetadata` Include all metadata (EXIF, XMP, IPTC) from the input image in the output image. This will also convert to and add the latest web-friendly v2 sRGB ICC profile. (default: `false`)
-* `setHeaders` Callback with signature `function(err, destFilepath)`
+* `setHeaders` Callback with signature `function(res, filepath)`, called before `res.sendFile(filepath)`
 
 Resizing of images is directed by the query parameter `dim`.  This is in the format [width]x[height]. E.g. `red.gif?dim=200x100`
 
