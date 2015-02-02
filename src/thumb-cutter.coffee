@@ -7,6 +7,9 @@ global[id] ?= require name for id, name of {
 }
 
 class ImageResizer
+  __requestCache = 
+    atWork: {}
+    queue : {}
 
   @convert: (options = {}, callback) ->
     {src, dst, width, height, rotate, quality} = options
@@ -49,15 +52,8 @@ class ImageResizer
       res.sendFile file
 
     send_if_exists = (res, file, callback) ->
-      fs.exists file, (exists) ->
-        return callback() unless exists
-
-        fs.stat file, (err, stats) ->
-          unless err
-            return send_with_headers res, file if stats.isFile()
-          else
-            console.error err
-          callback()
+      return callback() unless fs.existsSync file
+      send_with_headers res, file
 
     return (req, res, next) ->
       # reject funny requests
@@ -96,26 +92,48 @@ class ImageResizer
       # cacheKey = crypto.createHash('md5').update(cacheKey).digest('hex')
       dst = Path.join options.cacheDir, cacheKey, file
 
-      send_if_exists res, dst, ->
-        dims = "#{dim}".split /x/
-        opts =
-          src     : orig
-          dst     : dst
-          width   : Number(dims[0]) or null
-          height  : Number(dims[1]) or null
-          quality : Number(quality) or null
-          rotate  : switch rotate
-            when 'true',  true  then yes
-            when 'false', false then no
-            else
-              Number(rotate) or null
-          progressive : options.progressive
-          withMetadata: options.withMetadata
+      processRequest = ->
+        # send image if found or generate it on the fly
+        send_if_exists res, dst, ->
+          # mark image conversion start
+          __requestCache.atWork[dst] = yes
 
-        ImageResizer.convert opts, (err, dst) ->
-          unless err
-            send_with_headers res, dst
-          else
-            next err
+          dims = "#{dim}".split /x/
+          opts =
+            src     : orig
+            dst     : dst
+            width   : Number(dims[0]) or null
+            height  : Number(dims[1]) or null
+            quality : Number(quality) or null
+            rotate  : switch rotate
+              when 'true',  true  then yes
+              when 'false', false then no
+              else
+                Number(rotate) or null
+            progressive : options.progressive
+            withMetadata: options.withMetadata
+
+          ImageResizer.convert opts, (err, dst) ->
+            # console.log 'ImageResizer.convert', err, dst, __requestCache
+            unless err
+              send_with_headers res, dst
+            else
+              next err if err
+
+            # execute pending requests
+            if queue = __requestCache.queue[dst]
+              callback() for callback in queue
+
+            delete __requestCache.atWork[dst]
+            delete __requestCache.queue[dst]
+
+      process.nextTick -> 
+        if __requestCache.atWork[dst]
+          # queue request until image conversion finishes
+          __requestCache.queue[dst] ||= []
+          __requestCache.queue[dst].push processRequest
+        else
+          # go ahead, no conversion in progress
+          processRequest()
 
 module.exports = ImageResizer
