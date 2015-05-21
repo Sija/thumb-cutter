@@ -28,7 +28,7 @@
     "vips"
   ],
   "dependencies": {
-    "mkdirp": "0.5.x",
-    "sharp" : "0.8.x"
+    "mkdirp": "^0.5.0",
+    "sharp" : "^0.10.0"
   }
 }
